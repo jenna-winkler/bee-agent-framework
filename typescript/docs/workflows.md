@@ -1,428 +1,402 @@
-# 🔄 Workflows (experimental)
+# Workflows (experimental)
 
-<!-- TOC -->
-## Table of Contents
-- [Overview](#overview)
-- [Core Concepts](#core-concepts)
-  - [State](#state)
-  - [Steps](#steps)
-  - [Transitions](#transitions)
-- [Basic Usage](#basic-usage)
-  - [Simple Workflow](#simple-workflow)
-  - [Multi-Step Workflow](#multi-step-workflow)
-- [Advanced Features](#advanced-features)
-  - [Workflow Nesting](#workflow-nesting)
-  - [Multi-Agent Workflows](#multi-agent-workflows)
-  - [Memory in Workflows](#memory-in-workflows)
-  - [Web Agent Example](#web-agent-example)
-- [Related Resources](#related-resources)
-<!-- /TOC -->
+> [!TIP]
+>
+> Location within the framework `beeai-framework/experimental/workflows`.
 
----
+Workflows provide a flexible and extensible component for managing and executing structured sequences of tasks.
 
-## Overview
+- Dynamic Execution: Steps can direct the flow based on state or results.
+- Validation: Define schemas for data consistency and type safety.
+- Modularity: Steps can be standalone or invoke nested workflows.
+- Observability: Emit events during execution to track progress or handle errors.
 
-Workflows provide a flexible and extensible component for managing and executing structured sequences of tasks. They are particularly useful for:
+## Usage
 
-- 🔄 Dynamic Execution: Steps can direct the flow based on state or results
-- ✅ Validation: Define schemas for data consistency and type safety
-- 🧩 Modularity: Steps can be standalone or invoke nested workflows
-- 👁️ Observability: Emit events during execution to track progress or handle errors
+#### Basic
 
----
+<!-- embedme examples/workflows/simple.ts -->
 
-## Core Concepts
+```ts
+import { Workflow } from "beeai-framework/workflows/workflow";
+import { z } from "zod";
 
-### State
+const schema = z.object({
+  hops: z.number().default(0),
+});
 
-State is the central data structure in a workflow. It's a Pydantic model that:
-- Holds the data passed between steps
-- Provides type validation and safety
-- Persists throughout the workflow execution
+const workflow = new Workflow({ schema })
+  .addStep("a", async (state) => {
+    state.hops += 1;
+  })
+  .addStep("b", () => (Math.random() > 0.5 ? Workflow.PREV : Workflow.END));
 
-### Steps
+const response = await workflow.run({ hops: 0 }).observe((emitter) => {
+  emitter.on("start", (data) => console.log(`-> start ${data.step}`));
+  emitter.on("error", (data) => console.log(`-> error ${data.step}`));
+  emitter.on("success", (data) => console.log(`-> finish ${data.step}`));
+});
 
-Steps are the building blocks of a workflow. Each step is a function that:
-- Takes the current state as input
-- Can modify the state
-- Returns the name of the next step to execute or a special reserved value
-
-### Transitions
-
-Transitions determine the flow of execution between steps. Each step returns either:
-- The name of the next step to execute
-- `Workflow.NEXT` - proceed to the next step in order
-- `Workflow.SELF` - repeat the current step
-- `Workflow.END` - end the workflow execution
-
----
-
-## Basic Usage
-
-### Simple Workflow
-
-From [simple.py](/python/examples/workflows/simple.py):
-
-```py
-import asyncio
-import traceback
-
-from pydantic import BaseModel, ValidationError
-from beeai_framework.workflows.workflow import Workflow, WorkflowError
-
-async def main() -> None:
-    # State
-    class State(BaseModel):
-        input: str
-
-    try:
-        workflow = Workflow(State)
-        workflow.add_step("first", lambda state: print("Running first step!"))
-        workflow.add_step("second", lambda state: print("Running second step!"))
-        workflow.add_step("third", lambda state: print("Running third step!"))
-
-        await workflow.run(State(input="Hello"))
-
-    except WorkflowError:
-        traceback.print_exc()
-    except ValidationError:
-        traceback.print_exc()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+console.log(`Hops: ${response.result.hops}`);
+console.log(`-> steps`, response.steps.map((step) => step.name).join(","));
 ```
 
-In this example:
-1. We define a simple state model with an `input` field
-2. Create a workflow with three steps that each print a message
-3. Run the workflow with an initial state
+_Source: [examples/workflows/simple.ts](/examples/workflows/simple.ts)_
 
-### Multi-Step Workflow
+#### Nesting
 
-From [advanced.py](/python/examples/workflows/advanced.py):
+<!-- embedme examples/workflows/nesting.ts -->
 
-```py
-import asyncio
+```ts
+import { Workflow } from "beeai-framework/workflows/workflow";
+import { z } from "zod";
 
-from typing import Literal, TypeAlias
-from pydantic import BaseModel, ValidationError
-from beeai_framework.workflows.workflow import Workflow, WorkflowError, WorkflowReservedStepName
+const schema = z.object({
+  threshold: z.number().min(0).max(1),
+  counter: z.number().default(0),
+});
 
-async def main() -> None:
-    # State
-    class State(BaseModel):
-        x: int
-        y: int
-        abs_repetitions: int | None = None
-        result: int | None = None
+const addFlow = new Workflow({ schema }).addStep("run", async (state) => {
+  state.counter += 1;
+  return Math.random() > 0.5 ? Workflow.SELF : Workflow.END;
+});
 
-    WorkflowStep: TypeAlias = Literal["pre_process", "add_loop", "post_process"]
+const subtractFlow = new Workflow({
+  schema,
+}).addStep("run", async (state) => {
+  state.counter -= 1;
+  return Math.random() > 0.5 ? Workflow.SELF : Workflow.END;
+});
 
-    def pre_process(state: State) -> WorkflowStep:
-        print("pre_process")
-        state.abs_repetitions = abs(state.y)
-        return "add_loop"
+const workflow = new Workflow({
+  schema,
+})
+  .addStep("start", (state) =>
+    Math.random() > state.threshold ? "delegateAdd" : "delegateSubtract",
+  )
+  .addStep("delegateAdd", addFlow.asStep({ next: Workflow.END }))
+  .addStep("delegateSubtract", subtractFlow.asStep({ next: Workflow.END }));
 
-    def add_loop(state: State) -> WorkflowStep | WorkflowReservedStepName:
-        if state.abs_repetitions and state.abs_repetitions > 0:
-            result = (state.result if state.result is not None else 0) + state.x
-            abs_repetitions = (state.abs_repetitions if state.abs_repetitions is not None else 0) - 1
-            print(f"add_loop: intermediate result {result}")
-            state.abs_repetitions = abs_repetitions
-            state.result = result
-            return Workflow.SELF
-        else:
-            return "post_process"
-
-    def post_process(state: State) -> WorkflowReservedStepName:
-        print("post_process")
-        if state.y < 0:
-            result = -(state.result if state.result is not None else 0)
-            state.result = result
-        return Workflow.END
-
-    try:
-        multiplication_workflow = Workflow[State, WorkflowStep](name="MultiplicationWorkflow", schema=State)
-        multiplication_workflow.add_step("pre_process", pre_process)
-        multiplication_workflow.add_step("add_loop", add_loop)
-        multiplication_workflow.add_step("post_process", post_process)
-
-        response = await multiplication_workflow.run(State(x=8, y=5))
-        print(f"result: {response.state.result}")
-
-        response = await multiplication_workflow.run(State(x=8, y=-5))
-        print(f"result: {response.state.result}")
-
-    except WorkflowError as e:
-        print(e)
-    except ValidationError as e:
-        print(e)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+const response = await workflow.run({ threshold: 0.5 }).observe((emitter) => {
+  emitter.on("start", (data, event) =>
+    console.log(`-> step ${data.step}`, event.trace?.parentRunId ? "(nested flow)" : ""),
+  );
+});
+console.info(`Counter:`, response.result);
 ```
 
-This example demonstrates:
-1. More complex state with multiple fields
-2. Step functions that modify state and control flow
-3. Conditional logic using `Workflow.SELF` to repeat a step
-4. Different execution paths based on input values
+_Source: [examples/workflows/nesting.ts](/examples/workflows/nesting.ts)_
 
----
+### Agent Delegation
 
-## Advanced Features
+<!-- embedme examples/workflows/agent.ts -->
 
-### Workflow Nesting
+```ts
+import "dotenv/config";
+import { BeeAgent } from "beeai-framework/agents/bee/agent";
+import { z } from "zod";
+import { Message, UserMessage } from "beeai-framework/backend/message";
+import { WikipediaTool } from "beeai-framework/tools/search/wikipedia";
+import { OpenMeteoTool } from "beeai-framework/tools/weather/openMeteo";
+import { ReadOnlyMemory } from "beeai-framework/memory/base";
+import { UnconstrainedMemory } from "beeai-framework/memory/unconstrainedMemory";
+import { Workflow } from "beeai-framework/workflows/workflow";
+import { createConsoleReader } from "examples/helpers/io.js";
+import { GroqChatModel } from "beeai-framework/adapters/groq/backend/chat";
 
-Workflows can be composed of other workflows, allowing complex behavior to be built from simpler components.
+const schema = z.object({
+  answer: z.instanceof(Message).optional(),
+  memory: z.instanceof(ReadOnlyMemory),
+});
 
-From [nesting.py](/python/examples/workflows/nesting.py):
+const workflow = new Workflow({ schema: schema })
+  .addStep("simpleAgent", async (state) => {
+    const simpleAgent = new BeeAgent({
+      llm: new GroqChatModel("llama-3.3-70b-versatile"),
+      tools: [],
+      memory: state.memory,
+    });
+    const answer = await simpleAgent.run({ prompt: null });
+    reader.write("🤖 Simple Agent", answer.result.text);
 
-```text
-Coming soon
+    state.answer = answer.result;
+    return "critique";
+  })
+  .addStrictStep("critique", schema.required(), async (state) => {
+    const llm = new GroqChatModel("llama-3.3-70b-versatile");
+    const { object: critiqueResponse } = await llm.createStructure({
+      schema: z.object({ score: z.number().int().min(0).max(100) }),
+      messages: [
+        Message.of({
+          role: "system",
+          text: `You are an evaluation assistant who scores the credibility of the last assistant's response. Chitchatting always has a score of 100. If the assistant was unable to answer the user's query, then the score will be 0.`,
+        }),
+        ...state.memory.messages,
+        state.answer,
+      ],
+    });
+    reader.write("🧠 Score", critiqueResponse.score.toString());
+
+    return critiqueResponse.score < 75 ? "complexAgent" : Workflow.END;
+  })
+  .addStep("complexAgent", async (state) => {
+    const complexAgent = new BeeAgent({
+      llm: new GroqChatModel("llama-3.3-70b-versatile"),
+      tools: [new WikipediaTool(), new OpenMeteoTool()],
+      memory: state.memory,
+    });
+    const { result } = await complexAgent.run({ prompt: null });
+    reader.write("🤖 Complex Agent", result.text);
+    state.answer = result;
+  })
+  .setStart("simpleAgent");
+
+const reader = createConsoleReader();
+const memory = new UnconstrainedMemory();
+
+for await (const { prompt } of reader) {
+  const userMessage = new UserMessage(prompt);
+  await memory.add(userMessage);
+
+  const response = await workflow.run({
+    memory: memory.asReadOnly(),
+  });
+  await memory.add(response.state.answer!);
+
+  reader.write("🤖 Final Answer", response.state.answer!.text);
+}
 ```
 
-### Multi-Agent Workflows
+_Source: [examples/workflows/agent.ts](/examples/workflows/agent.ts)_
 
-From [multi_agents.py](/python/examples/workflows/multi_agents.py):
+### Multi-agent Content Creator
 
-```py
-import asyncio
-import traceback
+<!-- embedme examples/workflows/contentCreator.ts -->
 
-from pydantic import ValidationError
+```ts
+import "dotenv/config";
+import { z } from "zod";
+import { Workflow } from "beeai-framework/workflows/workflow";
+import { BeeAgent } from "beeai-framework/agents/bee/agent";
+import { UnconstrainedMemory } from "beeai-framework/memory/unconstrainedMemory";
+import { createConsoleReader } from "examples/helpers/io.js";
+import { Message } from "beeai-framework/backend/message";
+import { isEmpty } from "remeda";
+import { LLMTool } from "beeai-framework/tools/llm";
+import { GoogleSearchTool } from "beeai-framework/tools/search/googleSearch";
+import { GroqChatModel } from "beeai-framework/adapters/groq/backend/chat";
 
-from beeai_framework.agents.bee.agent import BeeAgentExecutionConfig
-from beeai_framework.backend.chat import ChatModel
-from beeai_framework.backend.message import UserMessage
-from beeai_framework.memory import UnconstrainedMemory
-from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
-from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
-from beeai_framework.workflows.agent import AgentFactoryInput, AgentWorkflow
-from beeai_framework.workflows.workflow import WorkflowError
+const schema = z.object({
+  input: z.string(),
+  output: z.string().optional(),
 
-async def main() -> None:
-    llm = ChatModel.from_name("ollama:granite3.1-dense:8b")
+  topic: z.string().optional(),
+  notes: z.array(z.string()).default([]),
+  plan: z.string().optional(),
+  draft: z.string().optional(),
+});
 
-    try:
-        workflow = AgentWorkflow(name="Smart assistant")
-        workflow.add_agent(
-            agent=AgentFactoryInput(
-                name="WeatherForecaster",
-                instructions="You are a weather assistant. Respond only if you can provide a useful answer.",
-                tools=[OpenMeteoTool()],
-                llm=llm,
-                execution=BeeAgentExecutionConfig(max_iterations=3),
-            )
-        )
-        workflow.add_agent(
-            agent=AgentFactoryInput(
-                name="Researcher",
-                instructions="You are a researcher assistant. Respond only if you can provide a useful answer.",
-                tools=[DuckDuckGoSearchTool()],
-                llm=llm,
-            )
-        )
-        workflow.add_agent(
-            agent=AgentFactoryInput(
-                name="Solver",
-                instructions="""Your task is to provide the most useful final answer based on the assistants'
-responses which all are relevant. Ignore those where assistant do not know.""",
-                llm=llm,
-            )
-        )
+const workflow = new Workflow({
+  schema,
+  outputSchema: schema.required({ output: true }),
+})
+  .addStep("preprocess", async (state) => {
+    const llm = new GroqChatModel("llama-3.3-70b-versatile");
 
-        prompt = "What is the weather in New York?"
-        memory = UnconstrainedMemory()
-        await memory.add(UserMessage(content=prompt))
-        response = await workflow.run(messages=memory.messages)
-        print(f"result: {response.state.final_answer}")
+    const { object: parsed } = await llm.createStructure({
+      schema: schema.pick({ topic: true, notes: true }).or(
+        z.object({
+          error: z
+            .string()
+            .describe("Use when the input query does not make sense or you need clarification."),
+        }),
+      ),
+      messages: [
+        Message.of({
+          role: `user`,
+          text: [
+            "Your task is to rewrite the user query so that it guides the content planner and editor to craft a blog post that perfectly aligns with the user's needs. Notes should be used only if the user complains about something.",
+            "If the user query does ",
+            "",
+            ...[state.topic && ["# Previous Topic", state.topic, ""]],
+            ...[!isEmpty(state.notes) && ["# Previous Notes", ...state.notes, ""]],
+            "# User Query",
+            state.input || "empty",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        }),
+      ],
+    });
 
-    except WorkflowError:
-        traceback.print_exc()
-    except ValidationError:
-        traceback.print_exc()
+    if ("error" in parsed) {
+      state.output = parsed.error;
+      return Workflow.END;
+    }
 
-if __name__ == "__main__":
-    asyncio.run(main())
+    state.notes = parsed.notes ?? [];
+    state.topic = parsed.topic;
+  })
+  .addStrictStep("planner", schema.required({ topic: true }), async (state) => {
+    const llm = new GroqChatModel("llama-3.3-70b-versatile");
+    const agent = new BeeAgent({
+      llm,
+      memory: new UnconstrainedMemory(),
+      tools: [new GoogleSearchTool(), new LLMTool({ llm })],
+    });
+
+    agent.emitter.on("update", (data) => {
+      console.info(data.update);
+    });
+
+    const { result } = await agent.run({
+      prompt: [
+        `You are a Content Planner. Your task is to write a content plan for "${state.topic}" topic in Markdown format.`,
+        ``,
+        `# Objectives`,
+        `1. Prioritize the latest trends, key players, and noteworthy news.`,
+        `2. Identify the target audience, considering their interests and pain points.`,
+        `3. Develop a detailed content outline including introduction, key points, and a call to action.`,
+        `4. Include SEO keywords and relevant sources.`,
+        ``,
+        ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
+        `Provide a structured output that covers the mentioned sections.`,
+      ].join("\n"),
+    });
+
+    state.plan = result.text;
+  })
+  .addStrictStep("writer", schema.required({ plan: true }), async (state) => {
+    const llm = new GroqChatModel("llama-3.3-70b-versatile");
+    const output = await llm.create({
+      messages: [
+        Message.of({
+          role: `system`,
+          text: [
+            `You are a Content Writer. Your task is to write a compelling blog post based on the provided context.`,
+            ``,
+            `# Context`,
+            `${state.plan}`,
+            ``,
+            `# Objectives`,
+            `- An engaging introduction`,
+            `- Insightful body paragraphs (2-3 per section)`,
+            `- Properly named sections/subtitles`,
+            `- A summarizing conclusion`,
+            `- Format: Markdown`,
+            ``,
+            ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
+            `Ensure the content flows naturally, incorporates SEO keywords, and is well-structured.`,
+          ].join("\n"),
+        }),
+      ],
+    });
+
+    state.draft = output.getTextContent();
+  })
+  .addStrictStep("editor", schema.required({ draft: true }), async (state) => {
+    const llm = new GroqChatModel("llama-3.3-70b-versatile");
+    const output = await llm.create({
+      messages: [
+        Message.of({
+          role: `system`,
+          text: [
+            `You are an Editor. Your task is to transform the following draft blog post to a final version.`,
+            ``,
+            `# Draft`,
+            `${state.draft}`,
+            ``,
+            `# Objectives`,
+            `- Fix Grammatical errors`,
+            `- Journalistic best practices`,
+            ``,
+            ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
+            ``,
+            `IMPORTANT: The final version must not contain any editor's comments.`,
+          ].join("\n"),
+        }),
+      ],
+    });
+
+    state.output = output.getTextContent();
+  });
+
+let lastResult = {} as Workflow.output<typeof workflow>;
+const reader = createConsoleReader();
+for await (const { prompt } of reader) {
+  const { result } = await workflow
+    .run({
+      input: prompt,
+      notes: lastResult?.notes,
+      topic: lastResult?.topic,
+    })
+    .observe((emitter) => {
+      emitter.on("start", ({ step, run }) => {
+        reader.write(`-> ▶️ ${step}`, JSON.stringify(run.state).substring(0, 200).concat("..."));
+      });
+    });
+
+  lastResult = result;
+  reader.write("🤖 Answer", lastResult.output);
+}
 ```
 
-This example demonstrates:
-1. Creating a specialized workflow for coordinating multiple agents
-2. Defining specialized agents with different roles and tools
-3. Passing memory with messages between agents
-4. Collecting and processing the results from all agents
+_Source: [examples/workflows/contentCreator.ts](/examples/workflows/contentCreator.ts)_
 
-### Memory in Workflows
+### Multi Agents Workflows
 
-From [memory.py](/python/examples/workflows/memory.py):
+<!-- embedme examples/workflows/multiAgents.ts -->
 
-```py
-import asyncio
-import traceback
+```ts
+import "dotenv/config";
+import { UnconstrainedMemory } from "beeai-framework/memory/unconstrainedMemory";
+import { createConsoleReader } from "examples/helpers/io.js";
+import { OpenMeteoTool } from "beeai-framework/tools/weather/openMeteo";
+import { WikipediaTool } from "beeai-framework/tools/search/wikipedia";
+import { AgentWorkflow } from "beeai-framework/workflows/agent";
+import { UserMessage } from "beeai-framework/backend/message";
+import { WatsonxChatModel } from "beeai-framework/adapters/watsonx/backend/chat";
 
-from pydantic import BaseModel, InstanceOf, ValidationError
+const workflow = new AgentWorkflow();
+const llm = new WatsonxChatModel("meta-llama/llama-3-3-70b-instruct");
 
-from beeai_framework.backend.message import AssistantMessage, UserMessage
-from beeai_framework.memory.unconstrained_memory import UnconstrainedMemory
-from beeai_framework.workflows.workflow import Workflow, WorkflowError
+workflow.addAgent({
+  name: "WeatherForecaster",
+  instructions: "You are a weather assistant. Respond only if you can provide a useful answer.",
+  tools: [new OpenMeteoTool()],
+  llm,
+  execution: { maxIterations: 3 },
+});
+workflow.addAgent({
+  name: "Researcher",
+  instructions: "You are a researcher assistant. Respond only if you can provide a useful answer.",
+  tools: [new WikipediaTool()],
+  llm,
+});
+workflow.addAgent({
+  name: "Solver",
+  instructions:
+    "Your task is to provide the most useful final answer based on the assistants' responses which all are relevant. Ignore those where assistant do not know.",
+  llm,
+});
 
-async def main() -> None:
-    # State with memory
-    class State(BaseModel):
-        memory: InstanceOf[UnconstrainedMemory]
-        output: str | None = None
+const reader = createConsoleReader();
+const memory = new UnconstrainedMemory();
 
-    async def echo(state: State) -> str:
-        # Get the last message in memory
-        last_message = state.memory.messages[-1]
-        state.output = last_message.text[::-1]
-        return Workflow.END
+for await (const { prompt } of reader) {
+  await memory.add(new UserMessage(prompt, { createdAt: new Date() }));
 
-    try:
-        memory = UnconstrainedMemory()
-        workflow = Workflow(State)
-        workflow.add_step("echo", echo)
+  const { result } = await workflow.run(memory.messages).observe((emitter) => {
+    emitter.on("success", (data) => {
+      reader.write(`-> ${data.step}`, data.state?.finalAnswer ?? "-");
+    });
+  });
 
-        while True:
-            # Add user message to memory
-            await memory.add(UserMessage(content=input("User: ")))
-            # Run workflow with memory
-            response = await workflow.run(State(memory=memory))
-            # Add assistant response to memory
-            await memory.add(AssistantMessage(content=response.state.output))
+  // await memory.addMany(result.newMessages); // save intermediate steps + final answer
+  await memory.addMany(result.newMessages.slice(-1)); // save only the final answer
 
-            print("Assistant: ", response.state.output)
-    except WorkflowError:
-        traceback.print_exc()
-    except ValidationError:
-        traceback.print_exc()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+  reader.write(`Agent 🤖`, result.finalAnswer);
+}
 ```
 
-This example shows:
-1. Integrating memory into workflow state
-2. Accessing message history during workflow execution
-3. Updating memory with new messages in a conversation loop
-
-### Web Agent Example
-
-From [web_agent.py](/python/examples/workflows/web_agent.py):
-
-```py
-import asyncio
-import sys
-import traceback
-
-from langchain_community.utilities import SearxSearchWrapper
-from pydantic import BaseModel, Field, ValidationError
-
-from beeai_framework.adapters.ollama.backend.chat import OllamaChatModel
-from beeai_framework.backend.chat import ChatModelOutput, ChatModelStructureOutput
-from beeai_framework.backend.message import UserMessage
-from beeai_framework.utils.templates import PromptTemplate
-from beeai_framework.workflows.workflow import Workflow, WorkflowError
-
-async def main() -> None:
-    llm = OllamaChatModel("granite3.1-dense:8b")
-    search = SearxSearchWrapper(searx_host="http://127.0.0.1:8888")
-
-    class State(BaseModel):
-        input: str
-        search_results: str | None = None
-        output: str | None = None
-
-    class InputSchema(BaseModel):
-        input: str
-
-    class WebSearchQuery(BaseModel):
-        search_query: str = Field(description="Search query.")
-
-    class RAGSchema(InputSchema):
-        input: str
-        search_results: str
-
-    async def web_search(state: State) -> str:
-        print("Step: ", sys._getframe().f_code.co_name)
-        prompt = PromptTemplate(
-            schema=InputSchema,
-            template="""
-            Please create a web search query for the following input.
-            Query: {{input}}""",
-        ).render(InputSchema(input=state.input))
-
-        output: ChatModelStructureOutput = await llm.create_structure(
-            {
-                "schema": WebSearchQuery,
-                "messages": [UserMessage(prompt)],
-            }
-        )
-        # TODO Why is object not of type schema T?
-        state.search_results = search.run(f"current weather in {output.object['search_query']}")
-        return Workflow.NEXT
-
-    async def generate_output(state: State) -> str:
-        print("Step: ", sys._getframe().f_code.co_name)
-
-        prompt = PromptTemplate(
-            schema=RAGSchema,
-            template="""
-    Use the following search results to answer the query accurately. If the results are irrelevant or insufficient, say 'I don't know.'
-
-    Search Results:
-    {{search_results}}
-
-    Query: {{input}}
-    """,  # noqa: E501
-        ).render(RAGSchema(input=state.input, search_results=state.search_results or "No results available."))
-
-        output: ChatModelOutput = await llm.create({"messages": [UserMessage(prompt)]})
-        state.output = output.get_text_content()
-        return Workflow.END
-
-    try:
-        # Define the structure of the workflow graph
-        workflow = Workflow(State)
-        workflow.add_step("web_search", web_search)
-        workflow.add_step("generate_output", generate_output)
-
-        # Execute the workflow
-        result = await workflow.run(State(input="What is the demon core?"))
-
-        print("\n*********************")
-        print("Input: ", result.state.input)
-        print("Agent: ", result.state.output)
-
-    except WorkflowError:
-        traceback.print_exc()
-    except ValidationError:
-        traceback.print_exc()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-This example demonstrates:
-1. Building a web search agent with structured steps
-2. Using templates to format prompts
-3. Generating structured data from LLM outputs
-4. Processing search results to generate answers
-
----
-
-## Related Resources
-
-- **Examples:**
-  - [simple.py](/python/examples/workflows/simple.py) - Basic workflow example
-  - [advanced.py](/python/examples/workflows/advanced.py) - More complex workflow with loops
-  - [memory.py](/python/examples/workflows/memory.py) - Using memory in workflows
-  - [multi_agents.py](/python/examples/workflows/multi_agents.py) - Multi-agent workflow
-  - [web_agent.py](/python/examples/workflows/web_agent.py) - Web search agent workflow
-  - [workflows.ipynb](/python/examples/notebooks/workflows.ipynb) - Interactive notebook examples
-
-- **Related Documentation:**
-  - [Agents Documentation](/python/docs/agents.md)
-  - [Memory Documentation](/python/docs/memory.md)
-  - [Tools Documentation](/python/docs/tools.md)
+_Source: [examples/workflows/multiAgents.ts](/examples/workflows/multiAgents.ts)_
