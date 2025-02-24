@@ -40,6 +40,7 @@ pip install beeai-framework
 
 The following example demonstrates how to build a multi-agent workflow using the BeeAI Framework:
 
+From [multi_agents.py](/python/examples/workflows/multi_agents.py):
 ```py
 import asyncio
 import traceback
