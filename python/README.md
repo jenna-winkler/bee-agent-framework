@@ -9,24 +9,43 @@
 
 Build production-ready multi-agent systems in Python. BeeAI framework is also available in [TypeScript](https://github.com/i-am-bee/beeai-framework/tree/main/typescript).
 
-## Modules
+## Key Features
 
-The `beeai_framework` directory contains the available modules:
+BeeAI Framework provides a comprehensive set of features for building powerful AI agents:
 
-| Name                                        | Description                                                                                 |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| [**agents**](/python/docs/agents.md)                   | Base classes defining the common interface for agent.                                       |
-| [**backend**](/python/docs/backend.md)             | Functionalities that relates to AI models (chat, embedding, image, tool calling, ...)       |
-| [**template**](/python/docs/templates.md)              | Prompt Templating system based on `Mustache` with various improvements.                     |
-| [**memory**](/python/docs/memory.md)                   | Various types of memories to use with agent.                                                |
-| [**tools**](/python/docs/tools.md)                     | Tools that an agent can use.                                                                |
-| [**cache**](/python/docs/cache.md)                     | Preset of different caching approaches that can be used together with tools.                |
-| [**errors**](/python/docs/errors.md)                   | Base framework error classes used by each module.                                           |
-| [**logger**](/python/docs/logger.md)                   | Core component for logging all actions within the framework.                                |
-| [**serializer**](/python/docs/serialization.md)        | Core component for the ability to serialize/deserialize modules into the serialized format. |
-| [**version**](/python/docs/version.md)                 | Constants representing the framework (e.g., the latest version)                             |
-| [**emitter**](/python/docs/emitter.md)                 | Bringing visibility to the system by emitting events.                                       |
-| [**instrumentation**](/python/docs/instrumentation.md) | Integrate monitoring tools into your application.                                           |
+### Core Building Blocks
+
+- [**Agents**](/python/docs/agents.md) - Create intelligent, autonomous agents using the ReAct pattern. Build agents that can reason about problems, take appropriate actions, and adapt their approach based on feedback. Includes pre-built agent architectures and customizable components.
+
+- [**Workflows**](/python/docs/workflows.md) - Orchestrate complex multi-agent systems where specialized agents collaborate to solve problems. Define sequential or conditional execution flows with state management and observability.
+
+- [**Backend Integrations**](/python/docs/backend.md) - Connect to various LLM providers like Ollama, watsonx.ai, and more. Offers unified interfaces for chat, embeddings, and structured outputs, making it easy to swap models without changing your code.
+
+### Capability Extensions
+
+- [**Tools**](/python/docs/tools.md) - Extend agent capabilities with ready-to-use tools for web search, weather forecasting, knowledge retrieval, code execution, and more. Create custom tools to connect agents to any API or service.
+
+- [**Memory**](/python/docs/memory.md) - Manage conversation history with different memory strategies. Choose from unconstrained memory, token-aware memory, sliding window memory, or summarization memory based on your needs.
+
+- [**Templates**](/python/docs/templates.md) - Build flexible prompt templates using an enhanced Mustache syntax. Create reusable templates with variables, conditionals, and loops to generate well-structured prompts.
+
+### Production Optimization
+
+- [**Cache**](/python/docs/cache.md) - Optimize performance and reduce costs with caching mechanisms for tool outputs and LLM responses. Implement different caching strategies based on your application requirements.
+
+- [**Serialization**](/python/docs/serialization.md) - Save and load agent state for persistence across sessions. Serialize workflows, memory, and other components to support stateful applications.
+
+- [**Error Handling**](/python/docs/errors.md) - Implement robust error management with specialized error classes. Distinguish between different error types and implement appropriate recovery strategies.
+
+### Observability & Control
+
+- [**Emitter**](/python/docs/emitter.md) - Gain visibility into agent decision processes with a flexible event system. Subscribe to events like updates, errors, and tool executions to monitor agent behavior.
+
+- [**Logger**](/python/docs/logger.md) - Track agent actions and system events with comprehensive logging. Configure logging levels and outputs to support debugging and monitoring.
+
+- [**Instrumentation**](/python/docs/instrumentation.md) - Monitor performance and usage with OpenTelemetry integration. Collect metrics and traces to understand system behavior in production environments.
+
+- [**Version**](/python/docs/version.md) - Access framework version information programmatically to ensure compatibility.
 
 ## Installation
 
