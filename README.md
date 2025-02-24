@@ -51,8 +51,9 @@ For more guidance and starter examples in your desired language, head to the doc
 
 ## Quick example
 
-This example demonstrates how to build a multi-agent workflow using BeeAI Framework in Python:
+This example demonstrates how to build a multi-agent workflow using BeeAI Framework in Python.
 
+From [custom_agent.py](/python/examples/workflows/multi_agents.py):
 ```py
 import asyncio
 import traceback
