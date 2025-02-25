@@ -6,7 +6,6 @@
 [![Discord](https://img.shields.io/discord/1309202615556378705?style=social&logo=discord&logoColor=black&label=Discord&labelColor=7289da&color=black)](https://discord.com/invite/NradeA6ZNF)
 [![GitHub Repo stars](https://img.shields.io/github/stars/I-am-bee/beeai-framework)](https://github.com/i-am-bee/beeai-framework)
 
-
 Build production-ready multi-agent systems in Python. BeeAI framework is also available in [TypeScript](https://github.com/i-am-bee/beeai-framework/tree/main/typescript).
 
 ## Key Features
@@ -15,37 +14,36 @@ BeeAI Framework provides a comprehensive set of features for building powerful A
 
 ### Core Building Blocks
 
-- [**Agents**](/python/docs/agents.md) - Create intelligent, autonomous agents using the ReAct pattern. Build agents that can reason about problems, take appropriate actions, and adapt their approach based on feedback. Includes pre-built agent architectures and customizable components.
-
-- [**Workflows**](/python/docs/workflows.md) - Orchestrate complex multi-agent systems where specialized agents collaborate to solve problems. Define sequential or conditional execution flows with state management and observability.
-
-- [**Backend Integrations**](/python/docs/backend.md) - Connect to various LLM providers like Ollama, watsonx.ai, and more. Offers unified interfaces for chat, embeddings, and structured outputs, making it easy to swap models without changing your code.
+| Feature | Description |
+|-----------|-------------|
+| [**Agents**](/python/docs/agents.md) | Create intelligent, autonomous agents using the ReAct pattern. Build agents that can reason about problems, take appropriate actions, and adapt their approach based on feedback. Includes pre-built agent architectures and customizable components. |
+| [**Workflows**](/python/docs/workflows.md) | Orchestrate complex multi-agent systems where specialized agents collaborate to solve problems. Define sequential or conditional execution flows with state management and observability. |
+| [**Backend**](/python/docs/backend.md) | Connect to various LLM providers like Ollama, watsonx.ai, and more. Offers unified interfaces for chat, embeddings, and structured outputs, making it easy to swap models without changing your code. |
 
 ### Capability Extensions
 
-- [**Tools**](/python/docs/tools.md) - Extend agent capabilities with ready-to-use tools for web search, weather forecasting, knowledge retrieval, code execution, and more. Create custom tools to connect agents to any API or service.
-
-- [**Memory**](/python/docs/memory.md) - Manage conversation history with different memory strategies. Choose from unconstrained memory, token-aware memory, sliding window memory, or summarization memory based on your needs.
-
-- [**Templates**](/python/docs/templates.md) - Build flexible prompt templates using an enhanced Mustache syntax. Create reusable templates with variables, conditionals, and loops to generate well-structured prompts.
+| Feature | Description |
+|-----------|-------------|
+| [**Tools**](/python/docs/tools.md) | Extend agent capabilities with ready-to-use tools for web search, weather forecasting, knowledge retrieval, code execution, and more. Create custom tools to connect agents to any API or service. |
+| [**Memory**](/python/docs/memory.md) | Manage conversation history with different memory strategies. Choose from unconstrained memory, token-aware memory, sliding window memory, or summarization memory based on your needs. |
+| [**Templates**](/python/docs/templates.md) | Build flexible prompt templates using an enhanced Mustache syntax. Create reusable templates with variables, conditionals, and loops to generate well-structured prompts. |
 
 ### Production Optimization
 
-- [**Cache**](/python/docs/cache.md) - Optimize performance and reduce costs with caching mechanisms for tool outputs and LLM responses. Implement different caching strategies based on your application requirements.
-
-- [**Serialization**](/python/docs/serialization.md) - Save and load agent state for persistence across sessions. Serialize workflows, memory, and other components to support stateful applications.
-
-- [**Error Handling**](/python/docs/errors.md) - Implement robust error management with specialized error classes. Distinguish between different error types and implement appropriate recovery strategies.
+| Feature | Description |
+|-----------|-------------|
+| [**Cache**](/python/docs/cache.md) | Optimize performance and reduce costs with caching mechanisms for tool outputs and LLM responses. Implement different caching strategies based on your application requirements. |
+| [**Serialization**](/python/docs/serialization.md) | Save and load agent state for persistence across sessions. Serialize workflows, memory, and other components to support stateful applications. |
+| [**Errors**](/python/docs/errors.md) | Implement robust error management with specialized error classes. Distinguish between different error types and implement appropriate recovery strategies. |
 
 ### Observability & Control
 
-- [**Emitter**](/python/docs/emitter.md) - Gain visibility into agent decision processes with a flexible event system. Subscribe to events like updates, errors, and tool executions to monitor agent behavior.
-
-- [**Logger**](/python/docs/logger.md) - Track agent actions and system events with comprehensive logging. Configure logging levels and outputs to support debugging and monitoring.
-
-- [**Instrumentation**](/python/docs/instrumentation.md) - Monitor performance and usage with OpenTelemetry integration. Collect metrics and traces to understand system behavior in production environments.
-
-- [**Version**](/python/docs/version.md) - Access framework version information programmatically to ensure compatibility.
+| Feature | Description |
+|-----------|-------------|
+| [**Emitter**](/python/docs/emitter.md) | Gain visibility into agent decision processes with a flexible event system. Subscribe to events like updates, errors, and tool executions to monitor agent behavior. |
+| [**Logger**](/python/docs/logger.md) | Track agent actions and system events with comprehensive logging. Configure logging levels and outputs to support debugging and monitoring. |
+| [**Instrumentation**](/python/docs/instrumentation.md) | Monitor performance and usage with OpenTelemetry integration. Collect metrics and traces to understand system behavior in production environments. |
+| [**Version**](/python/docs/version.md) | Access framework version information programmatically to ensure compatibility. |
 
 ## Installation
 
