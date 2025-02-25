@@ -154,7 +154,7 @@ All content in these repositories including code has been provided by IBM under 
 
 ## Contributors
 
-Special thanks to our contributors for helping us improve the BeeAI framework.
+Special thanks to our contributors for helping us improve BeeAI framework.
 
 <a href="https://github.com/i-am-bee/beeai-framework/graphs/contributors">
   <img alt="Contributors list" src="https://contrib.rocks/image?repo=i-am-bee/beeai-framework" />
