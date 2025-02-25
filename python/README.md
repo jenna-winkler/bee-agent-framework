@@ -8,11 +8,11 @@
 
 Build production-ready multi-agent systems in Python. BeeAI framework is also available in [TypeScript](https://github.com/i-am-bee/beeai-framework/tree/main/typescript).
 
-## Key Features
+## Key features
 
-BeeAI Framework provides a comprehensive set of features for building powerful AI agents:
+BeeAI framework provides a comprehensive set of features for building powerful AI agents:
 
-### Core Building Blocks
+### Core building blocks
 
 | Feature | Description |
 |-----------|-------------|
@@ -20,7 +20,7 @@ BeeAI Framework provides a comprehensive set of features for building powerful A
 | [**Workflows**](/python/docs/workflows.md) | Orchestrate complex multi-agent systems where specialized agents collaborate to solve problems. Define sequential or conditional execution flows with state management and observability. |
 | [**Backend**](/python/docs/backend.md) | Connect to various LLM providers like Ollama, watsonx.ai, and more. Offers unified interfaces for chat, embeddings, and structured outputs, making it easy to swap models without changing your code. |
 
-### Capability Extensions
+### Capability extensions
 
 | Feature | Description |
 |-----------|-------------|
@@ -28,7 +28,7 @@ BeeAI Framework provides a comprehensive set of features for building powerful A
 | [**Memory**](/python/docs/memory.md) | Manage conversation history with different memory strategies. Choose from unconstrained memory, token-aware memory, sliding window memory, or summarization memory based on your needs. |
 | [**Templates**](/python/docs/templates.md) | Build flexible prompt templates using an enhanced Mustache syntax. Create reusable templates with variables, conditionals, and loops to generate well-structured prompts. |
 
-### Production Optimization
+### Production optimization
 
 | Feature | Description |
 |-----------|-------------|
@@ -36,7 +36,7 @@ BeeAI Framework provides a comprehensive set of features for building powerful A
 | [**Serialization**](/python/docs/serialization.md) | Save and load agent state for persistence across sessions. Serialize workflows, memory, and other components to support stateful applications. |
 | [**Errors**](/python/docs/errors.md) | Implement robust error management with specialized error classes. Distinguish between different error types and implement appropriate recovery strategies. |
 
-### Observability & Control
+### Observability & control
 
 | Feature | Description |
 |-----------|-------------|
@@ -47,15 +47,15 @@ BeeAI Framework provides a comprehensive set of features for building powerful A
 
 ## Installation
 
-Install the framework using pip:
+Install BeeAI framework using pip:
 
 ```shell
 pip install beeai-framework
 ```
 
-## Quick Example
+## Quick example
 
-The following example demonstrates how to build a multi-agent workflow using the BeeAI Framework:
+The following example demonstrates how to build a multi-agent workflow using the BeeAI framework:
 
 From [multi_agents.py](/python/examples/workflows/multi_agents.py):
 ```py
@@ -72,7 +72,6 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
 from beeai_framework.workflows.agent import AgentFactoryInput, AgentWorkflow
 from beeai_framework.workflows.workflow import WorkflowError
-
 
 async def main() -> None:
     llm = ChatModel.from_name("ollama:granite3.1-dense:8b")
@@ -135,9 +134,9 @@ python [project_name].py
 
 ➡️ Explore more in our [examples library](/python/examples).
 
-## Contribution Guidelines
+## Contribution guidelines
 
-The BeeAI Framework is an open-source project and we ❤️ contributions.<br>
+BeeAI framework is an open-source project and we ❤️ contributions.<br>
 
 If you'd like to help build BeeAI, take a look at our [contribution guidelines](/python/docs/CONTRIBUTING.md).
 
@@ -145,17 +144,17 @@ If you'd like to help build BeeAI, take a look at our [contribution guidelines](
 
 We are using GitHub Issues to manage public bugs. We keep a close eye on this, so before filing a new issue, please check to make sure it hasn't already been logged.
 
-## Code of Conduct
+## Code of conduct
 
 This project and everyone participating in it are governed by the [Code of Conduct](/python/docs/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please read the [full text](./CODE_OF_CONDUCT.md) so that you can read which actions may or may not be tolerated.
 
-## Legal Notice
+## Legal notice
 
 All content in these repositories including code has been provided by IBM under the associated open source software license and IBM is under no obligation to provide enhancements, updates, or support. IBM developers produced this code as an open source project (not as an IBM product), and IBM makes no assertions as to the level of quality nor security, and will not be maintaining this code going forward.
 
 ## Contributors
 
-Special thanks to our contributors for helping us improve the BeeAI Framework.
+Special thanks to our contributors for helping us improve the BeeAI framework.
 
 <a href="https://github.com/i-am-bee/beeai-framework/graphs/contributors">
   <img alt="Contributors list" src="https://contrib.rocks/image?repo=i-am-bee/beeai-framework" />
