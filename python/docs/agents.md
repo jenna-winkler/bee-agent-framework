@@ -292,7 +292,6 @@ response = await workflow.run(messages=memory.messages)
 
 **Example Workflow Patterns:**
 - [multi_agents.py](/python/examples/workflows/multi_agents.py) - Multiple specialized agents working together
-- [web_agent.py](/python/examples/workflows/web_agent.py) - Web search and answer generation workflow
 - [memory.py](/python/examples/workflows/memory.py) - Memory-aware workflow for conversation
 
 > 💡 **Tip:** See the [workflows.md](/python/docs/workflows.md) documentation for more information.
