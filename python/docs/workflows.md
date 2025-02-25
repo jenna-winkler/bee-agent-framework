@@ -15,7 +15,7 @@
   - [Multi-Agent Workflows](#multi-agent-workflows)
   - [Memory in Workflows](#memory-in-workflows)
   - [Web Agent Example](#web-agent-example)
-- [Related Resources](#related-resources)
+- [Resources](#resources)
 <!-- /TOC -->
 
 ---
@@ -412,7 +412,7 @@ This example demonstrates:
 
 ---
 
-## Related Resources
+## Resources
 
 - **Examples:**
   - [simple.py](/python/examples/workflows/simple.py) - Basic workflow example
