@@ -53,7 +53,7 @@ Install the framework using pip:
 pip install beeai-framework
 ```
 
-## Quick example
+## Quick Example
 
 The following example demonstrates how to build a multi-agent workflow using the BeeAI Framework:
 
@@ -135,7 +135,7 @@ python [project_name].py
 
 ➡️ Explore more in our [examples library](/python/examples).
 
-## Contribution guidelines
+## Contribution Guidelines
 
 The BeeAI Framework is an open-source project and we ❤️ contributions.<br>
 
@@ -145,11 +145,11 @@ If you'd like to help build BeeAI, take a look at our [contribution guidelines](
 
 We are using GitHub Issues to manage public bugs. We keep a close eye on this, so before filing a new issue, please check to make sure it hasn't already been logged.
 
-## Code of conduct
+## Code of Conduct
 
 This project and everyone participating in it are governed by the [Code of Conduct](/python/docs/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please read the [full text](./CODE_OF_CONDUCT.md) so that you can read which actions may or may not be tolerated.
 
-## Legal notice
+## Legal Notice
 
 All content in these repositories including code has been provided by IBM under the associated open source software license and IBM is under no obligation to provide enhancements, updates, or support. IBM developers produced this code as an open source project (not as an IBM product), and IBM makes no assertions as to the level of quality nor security, and will not be maintaining this code going forward.
 
