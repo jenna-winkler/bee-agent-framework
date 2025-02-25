@@ -299,7 +299,7 @@ response = await workflow.run(messages=memory.messages)
 
 ---
 
-## Related Resources
+## Resources
 
 - **Examples:**
   - [simple.py](/python/examples/agents/simple.py) - Basic agent implementation
@@ -307,7 +307,7 @@ response = await workflow.run(messages=memory.messages)
   - [granite.py](/python/examples/agents/granite.py) - Using Granite model
   - [agents.ipynb](/python/examples/notebooks/agents.ipynb) - Interactive notebook examples
 
-- **Documentation:**
+- **Related Documentation:**
   - [Tools Documentation](/python/docs/tools.md)
   - [Memory Documentation](/python/docs/memory.md)
   - [Workflows Documentation](/python/docs/workflows.md)
