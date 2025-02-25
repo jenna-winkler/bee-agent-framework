@@ -15,7 +15,7 @@
 - [Creating Your Own Agent](#creating-your-own-agent)
 - [Agent with Memory](#agent-with-memory)
 - [Agent Workflows](#agent-workflows)
-- [Related Resources](#related-resources)
+- [Resources](#resources)
 <!-- /TOC -->
 
 ---
